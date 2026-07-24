@@ -1,0 +1,83 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(listId) {
+      return exists(/databases/$(database)/documents/lists/$(listId)/members/$(request.auth.uid));
+    }
+
+    function memberRole(listId) {
+      return get(/databases/$(database)/documents/lists/$(listId)/members/$(request.auth.uid)).data.role;
+    }
+
+    function canWrite(listId) {
+      return isMember(listId) && memberRole(listId) in ['owner', 'editor'];
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /lists/{listId} {
+      allow read: if isSignedIn() && isMember(listId);
+      allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+      // Only the owner may change memberIds (no Cloud Functions deployed to
+      // do this server-side, so the owner is the trusted party instead —
+      // editors can still update other fields like title/color).
+      allow update: if isSignedIn() && (
+        memberRole(listId) == 'owner' ||
+        (canWrite(listId) && request.resource.data.memberIds == resource.data.memberIds)
+      );
+      allow delete: if isSignedIn() && memberRole(listId) == 'owner';
+
+      match /members/{memberId} {
+        allow read: if isSignedIn() && isMember(listId);
+        // Only the list owner manages membership directly; memberIds array
+        // sync happens server-side.
+        allow write: if isSignedIn() && (
+          memberRole(listId) == 'owner' ||
+          (request.auth.uid == memberId && !exists(/databases/$(database)/documents/lists/$(listId)/members/$(memberId)))
+        );
+      }
+
+      match /tasks/{taskId} {
+        allow read: if isSignedIn() && isMember(listId);
+        allow write: if isSignedIn() && canWrite(listId);
+
+        match /subtasks/{subtaskId} {
+          allow read: if isSignedIn() && isMember(listId);
+          allow write: if isSignedIn() && canWrite(listId);
+        }
+      }
+    }
+
+    match /users/{userId}/focusSessions/{sessionId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // A single doc per friendship/request, readable and manageable by
+    // either participant — avoids needing to write into the other user's
+    // data (no Cloud Functions deployed to broker that server-side).
+    match /friendRequests/{requestId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.fromUid
+        && request.resource.data.fromUid != request.resource.data.toUid
+        && request.resource.data.participants.size() == 2
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.status == 'pending';
+      allow update: if isSignedIn()
+        && request.auth.uid in resource.data.participants
+        && request.resource.data.participants == resource.data.participants
+        && request.resource.data.fromUid == resource.data.fromUid
+        && request.resource.data.toUid == resource.data.toUid;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.fromUid;
+    }
+  }
+}

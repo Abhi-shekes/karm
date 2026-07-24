@@ -1,0 +1,76 @@
+{
+  "project_info": {
+    "project_number": "888011724130",
+    "project_id": "karma-todo-abhishakes",
+    "storage_bucket": "karma-todo-abhishakes.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:888011724130:android:1eee28c6fa2bde8ca3083b",
+        "android_client_info": {
+          "package_name": "com.karm.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "888011724130-g5tofmrf0k1pdaitv6aknhqvr280u9s2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.karm.app",
+            "certificate_hash": "c4d9699d2d3882b8742e8f7702d1b9c4c4bb98f9"
+          }
+        },
+        {
+          "client_id": "888011724130-cr1k08ffbvatea4r6cl68alujurfmsud.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "REMOVED_GOOGLE_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "888011724130-cr1k08ffbvatea4r6cl68alujurfmsud.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:888011724130:android:5a557921cc449731a3083b",
+        "android_client_info": {
+          "package_name": "com.ledger.app.ledger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "888011724130-cr1k08ffbvatea4r6cl68alujurfmsud.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "REMOVED_GOOGLE_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "888011724130-cr1k08ffbvatea4r6cl68alujurfmsud.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
