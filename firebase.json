@@ -1,0 +1,32 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": ["node_modules", ".git", "*.log"]
+    }
+  ],
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "karma-todo-abhishakes",
+          "appId": "1:888011724130:android:1eee28c6fa2bde8ca3083b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "karma-todo-abhishakes",
+          "configurations": {
+            "android": "1:888011724130:android:1eee28c6fa2bde8ca3083b"
+          }
+        }
+      }
+    }
+  }
+}
