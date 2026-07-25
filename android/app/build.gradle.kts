@@ -59,4 +59,8 @@ dependencies {
     // Home screen widget (Jetpack Glance)
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")
+
+    // Periodic widget redraw so the "Updated Xm ago" label (and the Focus
+    // widget's countdown) advance even while the app isn't open.
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 }

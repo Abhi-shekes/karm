@@ -6,7 +6,7 @@ part of 'app_initialization.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appInitializationHash() => r'65e97a0188df3a72432ecc1796e4380d748cc948';
+String _$appInitializationHash() => r'9ef7fbc178b3bbf3f843965275003f87bdc5e83f';
 
 /// Copied from Dart SDK
 class _SystemHash {

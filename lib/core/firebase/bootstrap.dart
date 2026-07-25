@@ -11,10 +11,12 @@ import '../../firebase_options.dart';
 Future<void> bootstrapFirebase() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Debug provider until release signing is set up; switch to Play Integrity
-  // for release builds (see plan's Polish pass).
+  // Play Integrity doesn't work from a debug-signed APK (device/app aren't
+  // attestable), so debug builds fall back to the debug provider, which
+  // requires allow-listing each developer device's token in the Firebase
+  // Console (App Check → Apps → Manage debug tokens).
   await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
+    androidProvider: kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
   );
 
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
