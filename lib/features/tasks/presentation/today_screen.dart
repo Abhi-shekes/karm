@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 
 import '../../../core/design/app_colors.dart';
 import '../../../core/design/app_text_styles.dart';
-import '../../ai_quick_add/plan_my_day_sheet.dart';
 import '../application/tasks_providers.dart';
 import '../domain/task_tile_data.dart';
 import 'add_task_sheet.dart';
@@ -59,17 +58,6 @@ class TodayScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 20),
-              if (tasks.isNotEmpty) ...[
-                OutlinedButton.icon(
-                  onPressed: () => showPlanMyDaySheet(
-                    context,
-                    tasks.map((t) => t.toTileData()).toList(),
-                  ),
-                  icon: Icon(Icons.auto_awesome, size: 16, color: colors.indigo),
-                  label: const Text('Plan my day'),
-                ),
-                const SizedBox(height: 16),
-              ],
               if (tasks.isEmpty)
                 _EmptyState(type: type)
               else

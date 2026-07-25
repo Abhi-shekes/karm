@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 
 import '../../../core/design/app_colors.dart';
 import '../../../core/design/app_text_styles.dart';
-import '../../ai_quick_add/ai_quick_add_provider.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../lists/application/lists_providers.dart';
 import '../../recurring/recurrence.dart';
@@ -37,8 +36,6 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
   bool _flagged = false;
   RecurrenceRule? _recurrence;
   bool _saving = false;
-  bool _parsingWithAi = false;
-  String? _aiError;
 
   @override
   void initState() {
@@ -73,29 +70,6 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
           ? date
           : DateTime(date.year, date.month, date.day, time.hour, time.minute);
     });
-  }
-
-  Future<void> _parseWithAi() async {
-    final input = _titleController.text.trim();
-    if (input.isEmpty || _parsingWithAi) return;
-
-    setState(() {
-      _parsingWithAi = true;
-      _aiError = null;
-    });
-    try {
-      final result = await ref.read(aiQuickAddServiceProvider).parse(input);
-      setState(() {
-        _titleController.text = result.title;
-        _dueDate = result.dueDate;
-        _flagged = result.flagged;
-        if (result.tags.isNotEmpty) _tagsController.text = result.tags.join(', ');
-      });
-    } catch (_) {
-      setState(() => _aiError = "Couldn't parse that — fill it in manually.");
-    } finally {
-      if (mounted) setState(() => _parsingWithAi = false);
-    }
   }
 
   Future<void> _save() async {
@@ -161,39 +135,14 @@ class _AddTaskSheetState extends ConsumerState<AddTaskSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('New task', style: type.sectionTitle),
-              const SizedBox(height: 4),
-              Text(
-                'Try "lunch with Sam Friday 1pm" — the sparkle fills in the rest.',
-                style: type.caption,
-              ),
               const SizedBox(height: 12),
               TextField(
                 controller: _titleController,
                 autofocus: true,
                 style: type.taskTitle,
-                decoration: InputDecoration(
-                  hintText: 'What needs doing?',
-                  suffixIcon: IconButton(
-                    tooltip: 'Fill in details with AI',
-                    onPressed: _parsingWithAi ? null : _parseWithAi,
-                    icon: _parsingWithAi
-                        ? SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: colors.indigo,
-                            ),
-                          )
-                        : Icon(Icons.auto_awesome, color: colors.indigo),
-                  ),
-                ),
+                decoration: const InputDecoration(hintText: 'What needs doing?'),
                 textInputAction: TextInputAction.next,
               ),
-              if (_aiError != null) ...[
-                const SizedBox(height: 4),
-                Text(_aiError!, style: type.taskNotes.copyWith(color: colors.clay)),
-              ],
               const SizedBox(height: 12),
               lists.when(
                 data: (allLists) {

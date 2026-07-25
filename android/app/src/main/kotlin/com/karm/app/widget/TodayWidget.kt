@@ -10,14 +10,18 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalContext
+import androidx.glance.layout.Alignment
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.lazy.LazyColumn
+import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
 import androidx.glance.background
@@ -53,16 +57,22 @@ val taskIdKey = ActionParameters.Key<String>("taskId")
 private data class WidgetTask(val id: String, val title: String, val done: Boolean)
 
 class TodayWidget : GlanceAppWidget() {
+    // Exact (not a fixed set of breakpoints) so the layout always matches
+    // whatever size the launcher actually grants it — the task list scrolls
+    // instead of being silently clipped when there isn't room for every row.
+    override val sizeMode = SizeMode.Exact
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val prefs = HomeWidgetPlugin.getData(context)
         val tasks = parseTasks(prefs.getString("today_tasks", "[]") ?: "[]")
+        val lastUpdated = prefs.getLong("last_updated", 0L)
 
-        provideContent { WidgetContent(tasks) }
+        provideContent { WidgetContent(tasks, lastUpdated) }
     }
 
     private fun parseTasks(json: String): List<WidgetTask> {
         val array = JSONArray(json)
-        val count = minOf(array.length(), 4)
+        val count = minOf(array.length(), 8)
         return (0 until count).map { i ->
             val obj = array.getJSONObject(i)
             WidgetTask(
@@ -74,8 +84,27 @@ class TodayWidget : GlanceAppWidget() {
     }
 }
 
+/** "just now" / "3m ago" / "2h ago", recomputed on every widget render. */
+fun relativeTime(epochMillis: Long): String {
+    if (epochMillis <= 0L) return ""
+    val elapsedMin = (System.currentTimeMillis() - epochMillis) / 60000
+    return when {
+        elapsedMin < 1 -> "Updated just now"
+        elapsedMin < 60 -> "Updated ${elapsedMin}m ago"
+        elapsedMin < 24 * 60 -> "Updated ${elapsedMin / 60}h ago"
+        else -> "Updated ${elapsedMin / (24 * 60)}d ago"
+    }
+}
+
 @Composable
-private fun WidgetContent(tasks: List<WidgetTask>) {
+private fun WidgetContent(tasks: List<WidgetTask>, lastUpdated: Long) {
+    // Deliberately NOT gating layout on LocalSize here: several OEM
+    // launchers (this was found on a ColorOS/Realme device) don't report
+    // accurate widget height through the AppWidgetManager options bundle,
+    // so a "hide the list below N dp" check can fire even when the widget
+    // is visually large, hiding all the tasks. The LazyColumn below already
+    // degrades gracefully (scrolls, or shows nothing) at genuinely small
+    // sizes, so there's no need to pre-emptively hide it.
     val context = LocalContext.current
     val openApp = actionStartActivity(Intent(context, MainActivity::class.java))
     val openAddTask = actionStartActivity(
@@ -89,29 +118,41 @@ private fun WidgetContent(tasks: List<WidgetTask>) {
             .fillMaxSize()
             .background(paper)
             .cornerRadius(16.dp)
-            .padding(12.dp)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
-        Row(modifier = GlanceModifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = GlanceModifier.fillMaxWidth()) {
             Text(
                 text = "Today",
-                style = TextStyle(color = ColorProvider(ink), fontSize = 13.sp, fontWeight = FontWeight.Medium),
+                style = TextStyle(color = ColorProvider(ink), fontSize = 14.sp, fontWeight = FontWeight.Medium),
                 modifier = GlanceModifier.defaultWeight().clickable(openApp),
             )
             Text(
                 text = "+ Add",
-                style = TextStyle(color = ColorProvider(indigo), fontSize = 12.sp, fontWeight = FontWeight.Medium),
-                modifier = GlanceModifier.clickable(openAddTask),
+                style = TextStyle(color = ColorProvider(indigo), fontSize = 13.sp, fontWeight = FontWeight.Medium),
+                modifier = GlanceModifier.padding(4.dp).clickable(openAddTask),
             )
         }
-        Spacer(modifier = GlanceModifier.size(8.dp))
+        Spacer(modifier = GlanceModifier.size(4.dp))
 
         if (tasks.isEmpty()) {
             Text(
                 text = "Nothing due today",
                 style = TextStyle(color = ColorProvider(inkMuted), fontSize = 12.sp),
+                modifier = GlanceModifier.padding(vertical = 8.dp),
             )
         } else {
-            tasks.forEach { task -> TaskRow(task, openApp) }
+            LazyColumn(modifier = GlanceModifier.defaultWeight()) {
+                items(tasks, itemId = { it.id.hashCode().toLong() }) { task ->
+                    TaskRow(task, openApp)
+                }
+            }
+        }
+
+        if (lastUpdated > 0L) {
+            Text(
+                text = relativeTime(lastUpdated),
+                style = TextStyle(color = ColorProvider(inkMuted), fontSize = 10.sp),
+            )
         }
     }
 }
@@ -119,20 +160,44 @@ private fun WidgetContent(tasks: List<WidgetTask>) {
 @Composable
 private fun TaskRow(task: WidgetTask, openApp: androidx.glance.action.Action) {
     Row(
-        modifier = GlanceModifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = GlanceModifier.fillMaxWidth().padding(vertical = 6.dp),
     ) {
+        // The checkbox's own visible glyph is small and quiet (mirrors the
+        // in-app KarmCheckbox), but its clickable area is padded out well
+        // past that so a real fingertip reliably lands on "toggle" instead
+        // of missing and hitting the title's "open app" tap target next to
+        // it.
         Box(
             modifier = GlanceModifier
-                .size(18.dp)
-                .cornerRadius(5.dp)
-                .background(if (task.done) sage else paper)
+                .padding(6.dp)
                 .clickable(actionRunCallback<ToggleTaskAction>(actionParametersOf(taskIdKey to task.id))),
         ) {
-            if (task.done) {
-                Text(text = "✓", style = TextStyle(color = ColorProvider(paper), fontSize = 11.sp))
+            Box(
+                modifier = GlanceModifier
+                    .size(22.dp)
+                    .cornerRadius(6.dp)
+                    .background(hairline),
+            ) {
+                Box(
+                    modifier = GlanceModifier
+                        .padding(2.dp)
+                        .size(18.dp)
+                        .cornerRadius(5.dp)
+                        .background(if (task.done) sage else paper),
+                ) {
+                    if (task.done) {
+                        Box(modifier = GlanceModifier.fillMaxSize()) {
+                            Text(
+                                text = "✓",
+                                style = TextStyle(color = ColorProvider(paper), fontSize = 11.sp),
+                            )
+                        }
+                    }
+                }
             }
         }
-        Spacer(modifier = GlanceModifier.width(8.dp))
+        Spacer(modifier = GlanceModifier.width(10.dp))
         Text(
             text = task.title,
             maxLines = 1,
@@ -140,7 +205,7 @@ private fun TaskRow(task: WidgetTask, openApp: androidx.glance.action.Action) {
                 color = ColorProvider(if (task.done) inkMuted else ink),
                 fontSize = 13.sp,
             ),
-            modifier = GlanceModifier.clickable(openApp),
+            modifier = GlanceModifier.defaultWeight().padding(vertical = 4.dp).clickable(openApp),
         )
     }
 }
@@ -169,6 +234,7 @@ class ToggleTaskAction : ActionCallback {
             }
         }
         editor.putString("today_tasks", tasks.toString())
+        editor.putLong("last_updated", System.currentTimeMillis())
 
         val pending = JSONArray(prefs.getString("pending_toggles", "[]") ?: "[]")
         pending.put(taskId)

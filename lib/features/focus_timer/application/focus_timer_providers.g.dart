@@ -46,7 +46,7 @@ final todayFocusSessionsProvider =
 typedef TodayFocusSessionsRef =
     AutoDisposeStreamProviderRef<List<FocusSession>>;
 String _$focusTimerControllerHash() =>
-    r'8d1ed9712c40c8750db33db08c476b2669d9bb42';
+    r'8bcee7d6afb8437fc39854179bb5fc751abdfa63';
 
 /// Kept alive so a running session survives navigating away from the
 /// timer screen — only process death actually stops it (see note below).

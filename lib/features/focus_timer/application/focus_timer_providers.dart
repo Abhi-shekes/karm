@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/db/app_database.dart';
 import '../../../core/db/database_provider.dart';
+import '../../home_widget/home_widget_provider.dart';
 import '../../notifications/reminder_service_provider.dart';
 import '../data/focus_sessions_repository.dart';
 import '../domain/focus_timer_state.dart';
@@ -53,6 +54,7 @@ class FocusTimerController extends _$FocusTimerController {
 
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+    _pushWidgetState();
   }
 
   void pause() {
@@ -60,18 +62,30 @@ class FocusTimerController extends _$FocusTimerController {
     final remaining = _remainingNow();
     state = state.copyWith(isRunning: false, clearEndTime: true, remainingSeconds: remaining);
     ref.read(reminderServiceProvider).cancelReminder(_timerNotificationId);
+    _pushWidgetState();
   }
 
   void reset() {
     _ticker?.cancel();
     ref.read(reminderServiceProvider).cancelReminder(_timerNotificationId);
     state = FocusTimerState.idle(state.phase);
+    _pushWidgetState();
   }
 
   void switchPhase(FocusPhase phase) {
     _ticker?.cancel();
     ref.read(reminderServiceProvider).cancelReminder(_timerNotificationId);
     state = FocusTimerState.idle(phase);
+    _pushWidgetState();
+  }
+
+  void _pushWidgetState() {
+    ref.read(homeWidgetServiceProvider).pushFocusState(
+          phaseLabel: state.phase.label,
+          isRunning: state.isRunning,
+          remainingSeconds: state.remainingSeconds,
+          endTime: state.endTime,
+        );
   }
 
   void _tick() {
@@ -103,5 +117,6 @@ class FocusTimerController extends _$FocusTimerController {
 
     final nextPhase = completedPhase == FocusPhase.focus ? FocusPhase.shortBreak : FocusPhase.focus;
     state = FocusTimerState.idle(nextPhase);
+    _pushWidgetState();
   }
 }

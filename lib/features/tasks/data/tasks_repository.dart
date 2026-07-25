@@ -159,6 +159,32 @@ class TasksRepository {
         .write(const TasksCompanion(isDeleted: Value(true)));
   }
 
+  /// Total tasks ever marked done — used for the profile page's "all
+  /// time" stat.
+  Future<int> countAllCompleted() async {
+    final count = _db.tasks.id.count();
+    final query = _db.selectOnly(_db.tasks)
+      ..addColumns([count])
+      ..where(_db.tasks.done.equals(true) & _db.tasks.isDeleted.equals(false));
+    final row = await query.getSingle();
+    return row.read(count) ?? 0;
+  }
+
+  /// Distinct calendar days on which at least one task was completed,
+  /// using `updatedAt` as a completion-date proxy (it's only touched by
+  /// user edits/toggles). Used to compute the profile page's streak.
+  Future<List<DateTime>> completedDates() async {
+    final query = _db.select(_db.tasks)
+      ..where((t) => t.done.equals(true) & t.isDeleted.equals(false));
+    final rows = await query.get();
+    final days = rows.map((t) {
+      final u = t.updatedAt;
+      return DateTime(u.year, u.month, u.day);
+    }).toSet().toList();
+    days.sort((a, b) => b.compareTo(a));
+    return days;
+  }
+
   Future<void> addSubtask(String taskId, String title) async {
     await _db.into(_db.subtasks).insert(
           SubtasksCompanion.insert(id: _uuid.v4(), taskId: taskId, title: title),

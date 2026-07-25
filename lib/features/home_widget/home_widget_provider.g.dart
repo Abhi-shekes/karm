@@ -23,11 +23,11 @@ final homeWidgetServiceProvider = Provider<HomeWidgetService>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef HomeWidgetServiceRef = ProviderRef<HomeWidgetService>;
-String _$homeWidgetSyncHash() => r'a66b6e8a4219cd3fce957df4b046c2c94c44dd3c';
+String _$homeWidgetSyncHash() => r'0dc9ea286c258fb53a9d718741962b70c5888665';
 
-/// Keeps the home screen widget's task snapshot fresh by pushing to it
-/// every time [todayTasksProvider] changes, for as long as the app is
-/// running. Activated once from [appInitialization] by reading it.
+/// Keeps the home screen widgets fresh by pushing to them every time
+/// their underlying data changes, for as long as the app is running.
+/// Activated once from [appInitialization] by reading it.
 ///
 /// Copied from [HomeWidgetSync].
 @ProviderFor(HomeWidgetSync)

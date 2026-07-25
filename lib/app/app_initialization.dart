@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../features/auth/application/user_profile_providers.dart';
+import '../features/focus_timer/application/focus_timer_providers.dart';
 import '../features/home_widget/home_widget_provider.dart';
 import '../features/lists/application/lists_providers.dart';
 import '../features/notifications/fcm_service_provider.dart';
@@ -21,6 +22,7 @@ Future<void> appInitialization(Ref ref, String userId) async {
   await ref.read(reminderServiceProvider).initialize();
   await ref.read(listsRepositoryProvider).ensureDefaultList(userId);
   await _applyPendingWidgetToggles(ref);
+  await _applyPendingFocusAction(ref);
   ref.read(homeWidgetSyncProvider);
 
   final user = FirebaseAuth.instance.currentUser;
@@ -44,5 +46,17 @@ Future<void> _applyPendingWidgetToggles(Ref ref) async {
   for (final id in toggledIds) {
     final task = await tasksRepository.getById(id);
     if (task != null) await controller.toggleDone(task);
+  }
+}
+
+Future<void> _applyPendingFocusAction(Ref ref) async {
+  final action = await ref.read(homeWidgetServiceProvider).drainPendingFocusAction();
+  if (action == null) return;
+
+  final controller = ref.read(focusTimerControllerProvider.notifier);
+  if (action == 'start') {
+    controller.start();
+  } else if (action == 'pause') {
+    controller.pause();
   }
 }
