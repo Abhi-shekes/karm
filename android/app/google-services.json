@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "888011724130-9ijuiimse3e370dta1134rmkfecjbkug.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.karm.app",
+            "certificate_hash": "48894dbb64e735b6ed9bb5932ff1ee9b39d2cf38"
+          }
+        },
+        {
           "client_id": "888011724130-g5tofmrf0k1pdaitv6aknhqvr280u9s2.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
