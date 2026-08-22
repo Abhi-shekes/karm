@@ -69,3 +69,17 @@ Every push to `main` triggers [`.github/workflows/release.yml`](.github/workflow
 which builds a release APK and publishes it as a new GitHub Release. The
 version auto-increments from the latest `vX.Y.Z` tag, starting at `v1.0.0`,
 and the APK is attached as `karm_v<version>.apk`.
+
+## Firebase configuration
+
+`android/app/google-services.json` and the Firebase API key are no longer committed.
+
+1. Copy the template and fill in your own project values:
+   ```sh
+   cp android/app/google-services.json.example android/app/google-services.json
+   ```
+2. Pass the Android API key at build/run time:
+   ```sh
+   flutter run --dart-define=FIREBASE_ANDROID_API_KEY=your-key
+   flutter build apk --dart-define=FIREBASE_ANDROID_API_KEY=your-key
+   ```

@@ -53,7 +53,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'REMOVED_GOOGLE_API_KEY',
+    apiKey: String.fromEnvironment('FIREBASE_ANDROID_API_KEY'),
     appId: '1:888011724130:android:1eee28c6fa2bde8ca3083b',
     messagingSenderId: '888011724130',
     projectId: 'karma-todo-abhishakes',
