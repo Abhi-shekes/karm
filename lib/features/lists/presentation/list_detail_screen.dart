@@ -5,6 +5,7 @@ import '../../../core/db/app_database.dart';
 import '../../../core/design/app_colors.dart';
 import '../../../core/design/app_text_styles.dart';
 import '../../tasks/application/tasks_providers.dart';
+import '../../tasks/presentation/task_detail_sheet.dart';
 import '../../tasks/domain/task_tile_data.dart';
 import '../../tasks/presentation/add_task_sheet.dart';
 import '../../tasks/presentation/task_tile.dart';
@@ -78,6 +79,7 @@ class _LocalListBody extends ConsumerWidget {
                 task: task.toTileData(),
                 onToggle: (_) =>
                     ref.read(tasksControllerProvider.notifier).toggleDone(task),
+                onTap: () => showTaskDetailSheet(context, task.id),
               );
             },
           );

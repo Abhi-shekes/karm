@@ -9,6 +9,7 @@ import '../application/tasks_providers.dart';
 import '../domain/task_tile_data.dart';
 import 'add_task_sheet.dart';
 import 'task_tile.dart';
+import 'task_detail_sheet.dart';
 
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
@@ -75,6 +76,7 @@ class TodayScreen extends ConsumerWidget {
                           onToggle: (_) => ref
                               .read(tasksControllerProvider.notifier)
                               .toggleDone(tasks[i]),
+                          onTap: () => showTaskDetailSheet(context, tasks[i].id),
                         ),
                       ],
                     ],

@@ -18,9 +18,41 @@ you share a list with a friend.
   <tr>
     <td><img src="docs/screenshots/calendar.png" width="200" alt="Calendar screen"></td>
     <td><img src="docs/screenshots/lists.png" width="200" alt="Lists screen"></td>
+    <td><img src="docs/screenshots/task-detail-steps.png" width="200" alt="Task detail with steps"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/task-detail-delete.png" width="200" alt="Delete task confirmation"></td>
+    <td><img src="docs/screenshots/focus-timer.png" width="200" alt="Focus timer"></td>
+    <td><img src="docs/screenshots/profile.png" width="200" alt="Profile"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/light-theme.png" width="200" alt="Light theme"></td>
+    <td><img src="docs/screenshots/friends.png" width="200" alt="Friends"></td>
     <td></td>
   </tr>
 </table>
+
+## Testing
+
+Verified on a physical Android device (realme RMX3921, Android 16 / API 36)
+with a signed release build.
+
+**Covered:** Today (add task, complete, due date, tags, flag), Upcoming,
+Calendar (day agenda), Lists (create list), the Focus timer (start, pause,
+reset, switching between Focus/Break), Friends, and the theme switch.
+
+**Fixed:** tapping a task did nothing at all — `TaskTile` already had an
+`onTap` callback, and the repository already implemented editing, deleting,
+and subtasks, but no screen ever wired the callback up, so none of that was
+reachable. Added a task detail sheet (opened from Today, Upcoming, Calendar,
+and Lists) covering title/notes/tags/due-date edits, the flag, subtasks, and
+delete with a confirmation dialog. Also hardened `ReminderService` so a
+device-specific notification failure can't block task or sign-in flows that
+merely want a reminder scheduled alongside them.
+
+**Status:** Pass — task creation, editing, subtasks, and delete all verified
+on-device after the fix, including that edits and deletes persist across an
+app restart.
 
 ## Features
 

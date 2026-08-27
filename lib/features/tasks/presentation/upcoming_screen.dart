@@ -9,6 +9,7 @@ import '../application/tasks_providers.dart';
 import '../domain/task_tile_data.dart';
 import 'add_task_sheet.dart';
 import 'task_tile.dart';
+import 'task_detail_sheet.dart';
 
 class UpcomingScreen extends ConsumerWidget {
   const UpcomingScreen({super.key});
@@ -64,6 +65,10 @@ class UpcomingScreen extends ConsumerWidget {
                           onToggle: (_) => ref
                               .read(tasksControllerProvider.notifier)
                               .toggleDone(grouped[day]![i]),
+                          onTap: () => showTaskDetailSheet(
+                            context,
+                            grouped[day]![i].id,
+                          ),
                         ),
                       ],
                     ],

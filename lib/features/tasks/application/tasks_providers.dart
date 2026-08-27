@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -85,6 +86,36 @@ class TasksController extends _$TasksController {
         taskId: next.id,
         title: next.title,
         dueDate: next.dueDate!,
+      );
+    }
+  }
+
+  /// Applies edits from the task detail sheet and keeps the task's reminder
+  /// in step with its new due date — clearing it when the date is removed.
+  Future<void> updateTask(
+    Task task, {
+    required String title,
+    String? notes,
+    DateTime? dueDate,
+    bool flagged = false,
+    List<String> tags = const [],
+  }) async {
+    await ref.read(tasksRepositoryProvider).updateTask(
+          task.id,
+          title: Value(title),
+          notes: Value(notes),
+          dueDate: Value(dueDate),
+          priority: Value(flagged ? 1 : 0),
+          tags: Value(tags.join(',')),
+        );
+
+    final reminders = ref.read(reminderServiceProvider);
+    await reminders.cancelReminder(task.id);
+    if (dueDate != null && !task.done) {
+      await reminders.scheduleReminder(
+        taskId: task.id,
+        title: title,
+        dueDate: dueDate,
       );
     }
   }
